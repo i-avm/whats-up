@@ -1,12 +1,72 @@
 <script>
+	import intlTelInput from 'intl-tel-input';
+	import 'intl-tel-input/build/css/intlTelInput.css';
+
+	import { onMount } from 'svelte';
+
+	/**
+	 * @type {HTMLElement}
+	 */
+	let section;
+
+	/**
+	 * @type {{
+		 getValidationError(): unknown;
+		 isValidNumber(): unknown;
+		 _getFullNumber(): unknown; getNumber: () => void; 
+		}}
+	 */
+	let iti;
+
+	let phoneNo = 0;
+	// here, the index maps to the error code returned from getValidationError - see readme
+	let errorMap = [
+		'Invalid number',
+		'Invalid country code',
+		'Too short',
+		'Too long',
+		'Invalid number'
+	];
+
+	let helperText = '';
+	let helperColor = 'red';
+
+	onMount(() => {
+		let phoneInput = section.querySelector('#phone');
+
+		iti = intlTelInput(phoneInput, {
+			initialCountry: 'in',
+			separateDialCode: true,
+			preferredCountries: ['in', 'us'],
+			utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.min.js'
+		});
+	});
+
+	// @ts-ignore
+	const onChangeInput = () => {
+		helperText = '';
+
+		// @ts-ignore
+		phoneNo = iti._getFullNumber();
+
+		if (!iti.isValidNumber()) {
+			let errorCode = iti.getValidationError();
+			// @ts-ignore
+			helperText = '✘ ' + errorMap[errorCode];
+		} else {
+			helperText = '✔';
+		}
+		helperColor = helperText === '✔' ? 'green' : 'red';
+	};
+
+	function onClickSend() {
+		window.open(`https://wa.me/${phoneNo}`, '_blank');
+	}
 </script>
 
-<svelte:head>
-	<title>Home</title>
-	<meta name="description" content="Svelte demo app" />
-</svelte:head>
+<svelte:head />
 
-<section>
+<section bind:this={section}>
 	<div class="text-center w-full">
 		<svg class="text-gray-100 h-8 mx-auto" viewBox="0 0 150 29" version="1.1">
 			<g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
@@ -157,7 +217,6 @@
 							y2="559.69"
 						/>
 					</defs>
-					<title>contact us</title>
 					<g opacity="0.1">
 						<ellipse cx="479.42" cy="362.12" rx="11.38" ry="14.9" fill="#3f3d56" />
 						<path
@@ -308,7 +367,7 @@
 					/>
 					<path
 						d="M321.59,346a12.82,12.82,0,0,1,7.42.81,10.94,10.94,0,0,0,8.92,0,12.52,12.52,0,0,1,10.49.2,6.47,6.47,0,0,0,3,.76c4.25,0,7.79-4.29,8.52-9.94a8.15,8.15,0,0,1-2.12-2.29c-2.5-4-6.36-6.59-10.69-6.59s-8.15,2.54-10.65,6.52a8.19,8.19,0,0,1-7.06,3.88h-.11C325.94,339.37,323,342.08,321.59,346Z"
-						transform="translate(-52 -162.63)"
+						transform="translhttps://whats-up-gilt.vercel.appate(-52 -162.63)"
 						fill="#25D366"
 						opacity="0.1"
 					/>
@@ -871,26 +930,17 @@
 		</div>
 		<!-- background svg ends here -->
 		<div class="">
-			<div>
-				<span class="uppercase text-sm text-gray-600 font-bold">Country code</span>
-				<select
-					class="w-full bg-gray-300 text-gray-900 mt-2 p-3 rounded-lg focus:outline-none focus:shadow-outline"
-					disabled
-					value={1}
-				>
-					<option value="1">India</option>
-				</select>
-			</div>
 			<div class="mt-8">
 				<span class="uppercase text-sm text-gray-600 font-bold">Mobile Number</span>
 				<input
-					class="w-full bg-gray-300 text-gray-900 mt-2 p-3 rounded-lg focus:outline-none focus:shadow-outline"
+					class="w-full bg-gray-200 text-gray-900 mt-2 p-3 rounded-lg focus:outline-none focus:shadow-outline"
 					type="tel"
-					max="9999999999"
-					min="1000000000"
-					required
+					id="phone"
+					placeholder="Sendee number"
+					on:input={onChangeInput}
 				/>
 			</div>
+			<span style="color:{helperColor}">{helperText?.length ? helperText : ''}</span>
 			<div class="mt-8">
 				<span class="uppercase text-sm text-gray-600 font-bold">Message</span>
 				<textarea
@@ -901,7 +951,9 @@
 			</div>
 			<div class="mt-8">
 				<button
-					class="uppercase text-sm font-bold tracking-wide bg-green-500 text-gray-100 p-3 rounded-lg w-full focus:outline-none focus:shadow-outline"
+					class="uppercase text-sm font-bold tracking-wide bg-green-500 text-gray-100 p-3 rounded-lg w-full focus:outline-none focus:shadow-outline disabled:opacity-25"
+					on:click={onClickSend}
+					disabled={helperColor === 'red'}
 				>
 					Send Message
 				</button>

@@ -1,5 +1,8 @@
 module.exports = {
 	root: true,
+	rules: {
+		'@typescript-eslint/ban-ts-comment': 'warn'
+	},
 	parser: '@typescript-eslint/parser',
 	extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'prettier'],
 	plugins: ['svelte3', '@typescript-eslint'],
